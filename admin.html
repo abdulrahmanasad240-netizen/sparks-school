@@ -52,6 +52,34 @@
     });
   });
 
+  // Load leadership
+  onValue(ref(db,"leadership"), snap => {
+    const d = snap.val()||{};
+    if(d.dir1) {
+      const el = id => document.getElementById(id);
+      if(el("dir1-name") && d.dir1.name) el("dir1-name").value = d.dir1.name;
+      if(el("dir1-title") && d.dir1.title) el("dir1-title").value = d.dir1.title;
+      if(el("dir1-bio") && d.dir1.bio) el("dir1-bio").value = d.dir1.bio;
+      if(el("dir1-quote") && d.dir1.quote) el("dir1-quote").value = d.dir1.quote;
+      if(el("dir1-photo") && d.dir1.photo) el("dir1-photo").value = d.dir1.photo;
+      if(el("dir1-preview") && d.dir1.photo) {
+        el("dir1-preview").src = d.dir1.photo;
+        el("dir1-preview").classList.remove("hidden");
+      }
+    }
+    if(d.dir2) {
+      const el = id => document.getElementById(id);
+      if(el("dir2-name") && d.dir2.name) el("dir2-name").value = d.dir2.name;
+      if(el("dir2-title") && d.dir2.title) el("dir2-title").value = d.dir2.title;
+      if(el("dir2-bio") && d.dir2.bio) el("dir2-bio").value = d.dir2.bio;
+      if(el("dir2-photo") && d.dir2.photo) el("dir2-photo").value = d.dir2.photo;
+      if(el("dir2-preview") && d.dir2.photo) {
+        el("dir2-preview").src = d.dir2.photo;
+        el("dir2-preview").classList.remove("hidden");
+      }
+    }
+  });
+
   // Load campuses
   onValue(ref(db,"campuses"), snap => {
     const d = snap.val()||{};
@@ -134,6 +162,24 @@
     notify("✅ Social links saved & live!");
   };
 
+  window.saveLeadership = async (dirKey) => {
+    const el = id => document.getElementById(id);
+    const data = {
+      name: el(`${dirKey}-name`).value,
+      title: el(`${dirKey}-title`).value,
+      bio: el(`${dirKey}-bio`).value,
+      photo: el(`${dirKey}-photo`).value,
+    };
+    if(dirKey === "dir1") data.quote = el("dir1-quote").value;
+    await set(ref(db, "leadership/"+dirKey), data);
+    // Update preview
+    if(data.photo) {
+      el(`${dirKey}-preview`).src = data.photo;
+      el(`${dirKey}-preview`).classList.remove("hidden");
+    }
+    notify("✅ Director info saved! Website پر فوری update ہوگا!");
+  };
+
   window.saveCampus = async (key) => {
     await set(ref(db, "campuses/"+key), {
       name: document.getElementById(`camp-${key}-name`).value,
@@ -141,6 +187,19 @@
       phone: document.getElementById(`camp-${key}-phone`).value,
     });
     notify("✅ Campus saved & live on website!");
+  };
+
+  window.uploadMediaURL = async () => {
+    const url = document.getElementById("media-url").value.trim();
+    const cat = document.getElementById("media-cat").value;
+    const title = document.getElementById("media-title").value.trim();
+    const type = document.getElementById("media-type").value;
+    if(!url) { notify("⚠️ URL paste کریں!"); return; }
+    notify("⏳ Adding...");
+    await push(ref(db,"gallery"), { url, category:cat, title, type, timestamp:Date.now() });
+    notify("✅ Added! Website پر نظر آ رہا ہے!");
+    document.getElementById("media-url").value = "";
+    document.getElementById("media-title").value = "";
   };
 
   window.uploadMedia = async () => {
@@ -172,29 +231,26 @@
   };
 
   window.uploadMagazine = async () => {
-    const pdfFile = document.getElementById("mag-pdf").files[0];
-    const coverFile = document.getElementById("mag-cover").files[0];
-    const title = document.getElementById("mag-title").value;
-    const year = document.getElementById("mag-year").value;
-    const desc = document.getElementById("mag-desc").value;
-    if(!pdfFile || !title) { notify("⚠️ Please provide title and PDF!"); return; }
-    notify("⏳ Uploading magazine...");
-    let pdfUrl = "", coverUrl = "";
-    // Upload PDF
-    const pdfRef = sRef(storage, `magazine/${Date.now()}_${pdfFile.name}`);
-    await uploadBytes(pdfRef, pdfFile);
-    pdfUrl = await getDownloadURL(pdfRef);
-    // Upload cover if provided
-    if(coverFile) {
-      const covRef = sRef(storage, `magazine/cover_${Date.now()}_${coverFile.name}`);
-      await uploadBytes(covRef, coverFile);
-      coverUrl = await getDownloadURL(covRef);
-    }
-    await push(ref(db,"magazine"), { title, year, description:desc, pdf:pdfUrl, cover:coverUrl, timestamp:Date.now() });
-    notify("✅ Magazine published & visible on website!");
+    const pdfUrl = document.getElementById("mag-pdf-url").value.trim();
+    const coverUrl = document.getElementById("mag-cover-url").value.trim();
+    const title = document.getElementById("mag-title").value.trim();
+    const year = document.getElementById("mag-year").value.trim();
+    const desc = document.getElementById("mag-desc").value.trim();
+    if(!title) { notify("⚠️ Magazine title لکھیں!"); return; }
+    if(!pdfUrl) { notify("⚠️ PDF link paste کریں!"); return; }
+    notify("⏳ Publishing magazine...");
+    await push(ref(db,"magazine"), { 
+      title, year, description:desc, 
+      pdf: pdfUrl, 
+      cover: coverUrl || "", 
+      timestamp: Date.now() 
+    });
+    notify("✅ Magazine published! Website پر نظر آئے گی!");
     document.getElementById("mag-title").value = "";
     document.getElementById("mag-year").value = "";
     document.getElementById("mag-desc").value = "";
+    document.getElementById("mag-pdf-url").value = "";
+    document.getElementById("mag-cover-url").value = "";
   };
 
   window.deleteMag = async (key) => {
@@ -257,6 +313,9 @@
       </button>
       <button onclick="goTab('social')" data-tab="social" class="nav-btn w-full flex items-center gap-3 px-5 py-3 text-white hover:bg-white/10 text-left text-xs font-semibold uppercase tracking-widest">
         <span class="material-symbols-outlined text-lg">share</span> Social Media
+      </button>
+      <button onclick="goTab('leadership')" data-tab="leadership" class="nav-btn w-full flex items-center gap-3 px-5 py-3 text-white hover:bg-white/10 text-left text-xs font-semibold uppercase tracking-widest">
+        <span class="material-symbols-outlined text-lg">person</span> Leadership
       </button>
       <button onclick="goTab('campuses')" data-tab="campuses" class="nav-btn w-full flex items-center gap-3 px-5 py-3 text-white hover:bg-white/10 text-left text-xs font-semibold uppercase tracking-widest">
         <span class="material-symbols-outlined text-lg">location_city</span> Campuses
@@ -362,6 +421,96 @@
       </div>
     </div>
 
+    <!-- === LEADERSHIP === -->
+    <div id="tab-leadership" class="tab-pane space-y-6">
+      <!-- Director 1 -->
+      <div class="glass rounded-2xl p-8">
+        <h3 class="text-xl font-bold text-blue-950 mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-900">person</span>
+          Director 1 — Sir Asad Iqbal
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Photo -->
+          <div class="space-y-3">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block">Photo</label>
+            <img id="dir1-preview" src="" class="hidden w-full aspect-[3/4] object-cover rounded-xl border-2 border-gray-200 mb-2"/>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 space-y-1">
+              <p class="font-bold">📌 Photo link کیسے لیں:</p>
+              <p>1. Google Drive پر photo upload کریں</p>
+              <p>2. Share → Anyone with link</p>
+              <p>3. Link کو بنائیں:</p>
+              <p><code class="bg-blue-100 px-1 rounded text-xs">https://drive.google.com/uc?id=FILE_ID</code></p>
+              <p class="mt-1 font-bold">یا Imgur.com استعمال کریں</p>
+            </div>
+            <input id="dir1-photo" type="url" placeholder="Director photo link paste کریں" 
+              class="w-full border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+          </div>
+          <!-- Info -->
+          <div class="md:col-span-2 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Full Name</label>
+                <input id="dir1-name" type="text" value="Sir Asad Iqbal" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+              </div>
+              <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Designation</label>
+                <input id="dir1-title" type="text" value="Director & Founder" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Biography</label>
+              <textarea id="dir1-bio" rows="4" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 resize-none bg-white">Sir Asad Iqbal is an inspiring, charismatic, and visionary leader with over 25 years of educational expertise across Pakistan and the UAE.</textarea>
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Quote / Message</label>
+              <textarea id="dir1-quote" rows="3" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 resize-none bg-white">"True education elevates the mind with knowledge, grounds the heart in Islamic Tarbiyah as our first priority."</textarea>
+            </div>
+          </div>
+        </div>
+        <button onclick="saveLeadership('dir1')" class="mt-6 bg-blue-950 text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition-colors">💾 Save — Website پر فوری Update</button>
+      </div>
+
+      <!-- Director 2 -->
+      <div class="glass rounded-2xl p-8">
+        <h3 class="text-xl font-bold text-blue-950 mb-6 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-900">person</span>
+          Director 2 — Sir Abdul Rahman Asad
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Photo -->
+          <div class="space-y-3">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block">Photo</label>
+            <img id="dir2-preview" src="" class="hidden w-full aspect-[3/4] object-cover rounded-xl border-2 border-gray-200 mb-2"/>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-800 space-y-1">
+              <p class="font-bold">📌 Photo link کیسے لیں:</p>
+              <p>Google Drive → Upload → Share → Anyone with link</p>
+              <p><code class="bg-blue-100 px-1 rounded text-xs">https://drive.google.com/uc?id=FILE_ID</code></p>
+            </div>
+            <input id="dir2-photo" type="url" placeholder="Director photo link paste کریں"
+              class="w-full border-2 border-blue-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+          </div>
+          <!-- Info -->
+          <div class="md:col-span-2 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Full Name</label>
+                <input id="dir2-name" type="text" value="Sir Abdul Rahman Asad" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+              </div>
+              <div>
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Designation</label>
+                <input id="dir2-title" type="text" value="Director" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Biography</label>
+              <textarea id="dir2-bio" rows="4" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 resize-none bg-white">Sir Abdul Rahman Asad brings dynamic leadership to Sparks International School, supporting the vision of quality education combined with strong moral values.</textarea>
+            </div>
+          </div>
+        </div>
+        <button onclick="saveLeadership('dir2')" class="mt-6 bg-blue-950 text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition-colors">💾 Save — Website پر فوری Update</button>
+      </div>
+    </div>
+
     <!-- === CAMPUSES === -->
     <div id="tab-campuses" class="tab-pane space-y-6">
       <div class="glass rounded-2xl p-6">
@@ -420,13 +569,20 @@
             </select>
           </div>
         </div>
-        <div onclick="document.getElementById('media-files').click()" class="border-2 border-dashed border-gray-200 rounded-2xl p-12 flex flex-col items-center cursor-pointer hover:border-blue-900 hover:bg-blue-50/50 transition-all">
-          <span class="material-symbols-outlined text-5xl text-gray-300 mb-3">cloud_upload</span>
-          <p class="font-bold text-gray-400 mb-1">Click to select files</p>
-          <p class="text-gray-300 text-sm">JPG, PNG, MP4, MOV — Multiple files OK</p>
-          <input type="file" id="media-files" multiple accept="image/*,video/*" class="hidden"/>
+        <!-- URL PASTE OPTION -->
+        <div class="bg-green-50 border-2 border-green-200 rounded-2xl p-6 mb-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-green-700 mb-3">✅ آسان طریقہ — Image/Video URL paste کریں</p>
+          <input id="media-url" type="url" placeholder="Image یا Video کا link paste کریں (Google Drive, Imgur, وغیرہ)" 
+            class="w-full border border-green-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-green-600 bg-white mb-3"/>
+          <div class="bg-green-100 rounded-xl p-3 text-xs text-green-800 space-y-1 mb-3">
+            <p class="font-bold">📌 Google Drive سے Image link:</p>
+            <p>1. Drive پر image upload کریں → Share → Anyone with link</p>
+            <p>2. Link کو یہ بنائیں: <code class="bg-green-200 px-1 rounded">https://drive.google.com/uc?id=FILE_ID</code></p>
+            <p class="font-bold mt-1">📌 یا Imgur.com پر upload کریں — direct link ملے گا</p>
+          </div>
+          <button onclick="uploadMediaURL()" class="bg-green-600 text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-green-700 transition-colors">✅ Add to Gallery</button>
         </div>
-        <button onclick="uploadMedia()" class="mt-5 bg-blue-950 text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition-colors">🚀 Upload — Website پر فوری Show ہوگا</button>
+        <button onclick="uploadMedia()" class="mt-2 bg-blue-950 text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-800 transition-colors">🚀 Upload — Website پر فوری Show ہوگا</button>
       </div>
       <div class="glass rounded-2xl p-6">
         <h3 class="font-bold text-blue-950 mb-4">Current Gallery (Hover to delete)</h3>
@@ -444,20 +600,30 @@
           <div><label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Magazine Title</label><input id="mag-title" type="text" placeholder="Sparks Magazine 2024" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/></div>
           <div><label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Academic Year</label><input id="mag-year" type="text" placeholder="2023-2024" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white"/></div>
           <div class="md:col-span-2"><label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Description</label><textarea id="mag-desc" rows="2" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 resize-none bg-white"></textarea></div>
-          <div>
-            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">PDF File</label>
-            <div onclick="document.getElementById('mag-pdf').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center cursor-pointer hover:border-blue-900 transition-colors">
-              <span class="material-symbols-outlined text-3xl text-gray-300 mb-1">picture_as_pdf</span>
-              <p class="text-gray-400 text-xs">Click to select PDF</p>
-              <input type="file" id="mag-pdf" accept=".pdf" class="hidden"/>
+          
+          <!-- PDF LINK -->
+          <div class="md:col-span-2">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-2">📄 PDF Link (Google Drive)</label>
+            <input id="mag-pdf-url" type="url" placeholder="https://drive.google.com/file/d/XXXXX/preview" class="w-full border-2 border-blue-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white mb-2"/>
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-800 space-y-1">
+              <p class="font-bold">📌 Google Drive سے PDF link کیسے لیں:</p>
+              <p>1. drive.google.com پر PDF upload کریں</p>
+              <p>2. PDF پر Right click → Share → Anyone with link</p>
+              <p>3. Link copy کریں</p>
+              <p>4. Link میں <code class="bg-blue-100 px-1 rounded">/view?usp=sharing</code> کو <code class="bg-blue-100 px-1 rounded">/preview</code> سے replace کریں</p>
+              <p>5. یہاں paste کریں ✅</p>
             </div>
           </div>
-          <div>
-            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1">Cover Image (Optional)</label>
-            <div onclick="document.getElementById('mag-cover').click()" class="border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center cursor-pointer hover:border-blue-900 transition-colors">
-              <span class="material-symbols-outlined text-3xl text-gray-300 mb-1">image</span>
-              <p class="text-gray-400 text-xs">Click to select image</p>
-              <input type="file" id="mag-cover" accept="image/*" class="hidden"/>
+
+          <!-- COVER IMAGE LINK -->
+          <div class="md:col-span-2">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-2">🖼️ Cover Image Link (Optional)</label>
+            <input id="mag-cover-url" type="url" placeholder="https://drive.google.com/uc?id=XXXXX یا کوئی بھی image link" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-900 bg-white mb-2"/>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-600">
+              <p class="font-bold mb-1">📌 Cover image link کیسے لیں:</p>
+              <p>Google Drive پر image upload کریں → Share → Anyone with link</p>
+              <p>Link: <code class="bg-gray-100 px-1 rounded">https://drive.google.com/file/d/XXXXX/view</code></p>
+              <p>اسے بنائیں: <code class="bg-gray-100 px-1 rounded">https://drive.google.com/uc?id=XXXXX</code></p>
             </div>
           </div>
         </div>
@@ -512,7 +678,7 @@ function goTab(id) {
   document.getElementById("tab-"+id).classList.add("active");
   const btn = document.querySelector(`[data-tab="${id}"]`);
   if(btn) { btn.classList.add("active"); btn.style.background = "rgba(255,255,255,0.15)"; }
-  const titles = {dash:"Dashboard",contact:"Contact & Info",social:"Social Media",campuses:"Campuses",gallery:"Gallery & Media",magazine:"Magazine",password:"Change Password"};
+  const titles = {dash:"Dashboard",contact:"Contact & Info",social:"Social Media",leadership:"Leadership",campuses:"Campuses",gallery:"Gallery & Media",magazine:"Magazine",password:"Change Password"};
   document.getElementById("page-heading").textContent = titles[id]||id;
 }
 

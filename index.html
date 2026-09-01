@@ -254,28 +254,36 @@
       <!-- Director 1 -->
       <div class="glass rounded-2xl p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center reveal hover-lift">
         <div class="w-full md:w-64 flex-shrink-0">
-          <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-            <div class="text-center p-6"><span class="material-symbols-outlined text-6xl text-gray-300 block mb-2">person</span><p class="text-xs text-gray-400">Upload Photo via Admin</p></div>
+          <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 relative">
+            <img id="pub-dir1-img" src="" class="hidden w-full h-full object-cover absolute inset-0"/>
+            <div id="pub-dir1-placeholder" class="flex items-center justify-center h-full text-center p-6">
+              <div><span class="material-symbols-outlined text-6xl text-gray-300 block mb-2">person</span><p class="text-xs text-gray-400">Admin سے photo upload کریں</p></div>
+            </div>
           </div>
         </div>
         <div class="flex-1">
-          <h2 class="text-2xl md:text-3xl font-bold text-blue-950">Sir Asad Iqbal</h2>
-          <span class="inline-block mt-2 mb-4 text-xs font-semibold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full border border-yellow-200">Director &amp; Founder</span>
-          <p class="text-gray-500 leading-relaxed mb-5">Sir Asad Iqbal is an inspiring, charismatic, and visionary leader with over 25 years of educational expertise across Pakistan and the UAE. Certified by ADEK (UAE), USA, and UK institutions. Dedicated to establishing safe, inclusive, and high-performing learning environments.</p>
-          <blockquote class="border-l-4 border-yellow-400 pl-5 italic text-blue-900 text-base">"True education elevates the mind with knowledge, grounds the heart in Islamic Tarbiyah as our first priority, and empowers youth to serve humanity with faith, noble character, and excellence."</blockquote>
+          <h2 id="pub-dir1-name" class="text-2xl md:text-3xl font-bold text-blue-950">Sir Asad Iqbal</h2>
+          <span id="pub-dir1-title" class="inline-block mt-2 mb-4 text-xs font-semibold uppercase tracking-widest bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full border border-yellow-200">Director &amp; Founder</span>
+          <p id="pub-dir1-bio" class="text-gray-500 leading-relaxed mb-5">Sir Asad Iqbal is an inspiring, charismatic, and visionary leader with over 25 years of educational expertise across Pakistan and the UAE. Certified by ADEK (UAE), USA, and UK institutions. Dedicated to establishing safe, inclusive, and high-performing learning environments.</p>
+          <blockquote class="border-l-4 border-yellow-400 pl-5 italic text-blue-900 text-base">
+            <span id="pub-dir1-quote">"True education elevates the mind with knowledge, grounds the heart in Islamic Tarbiyah as our first priority, and empowers youth to serve humanity with faith, noble character, and excellence."</span>
+          </blockquote>
         </div>
       </div>
       <!-- Director 2 -->
       <div class="glass rounded-2xl p-6 md:p-10 flex flex-col md:flex-row-reverse gap-8 items-center reveal hover-lift">
         <div class="w-full md:w-64 flex-shrink-0">
-          <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center border-2 border-gray-200">
-            <div class="text-center p-6"><span class="material-symbols-outlined text-6xl text-gray-300 block mb-2">person</span><p class="text-xs text-gray-400">Upload Photo via Admin</p></div>
+          <div class="aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 relative">
+            <img id="pub-dir2-img" src="" class="hidden w-full h-full object-cover absolute inset-0"/>
+            <div id="pub-dir2-placeholder" class="flex items-center justify-center h-full text-center p-6">
+              <div><span class="material-symbols-outlined text-6xl text-gray-300 block mb-2">person</span><p class="text-xs text-gray-400">Admin سے photo upload کریں</p></div>
+            </div>
           </div>
         </div>
         <div class="flex-1">
-          <h2 class="text-2xl md:text-3xl font-bold text-blue-950">Sir Abdul Rahman Asad</h2>
-          <span class="inline-block mt-2 mb-4 text-xs font-semibold uppercase tracking-widest bg-blue-100 text-blue-900 px-3 py-1 rounded-full border border-blue-200">Director</span>
-          <p class="text-gray-500 leading-relaxed">Sir Abdul Rahman Asad brings dynamic leadership to Sparks International School, supporting the vision of quality education combined with strong moral values and character development.</p>
+          <h2 id="pub-dir2-name" class="text-2xl md:text-3xl font-bold text-blue-950">Sir Abdul Rahman Asad</h2>
+          <span id="pub-dir2-title" class="inline-block mt-2 mb-4 text-xs font-semibold uppercase tracking-widest bg-blue-100 text-blue-900 px-3 py-1 rounded-full border border-blue-200">Director</span>
+          <p id="pub-dir2-bio" class="text-gray-500 leading-relaxed">Sir Abdul Rahman Asad brings dynamic leadership to Sparks International School, supporting the vision of quality education combined with strong moral values and character development.</p>
         </div>
       </div>
     </div>
